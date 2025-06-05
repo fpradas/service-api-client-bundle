@@ -66,12 +66,12 @@ class RequestFactory implements RequestFactoryInterface
     /**
      * RequestFactory constructor.
      *
-     * @param EndpointRegistryInterface $endpointRegistry
-     * @param SerializerInterface $serializer
+     * @param EndpointRegistryInterface       $endpointRegistry
+     * @param SerializerInterface             $serializer
      * @param RequestVisitorRegistryInterface $requestVisitorRegistry
-     * @param UriFactory $uriFactory
-     * @param MessageFactory $messageFactory
-     * @param bool $strictModeEnabled
+     * @param UriFactory                      $uriFactory
+     * @param MessageFactory                  $messageFactory
+     * @param bool                            $strictModeEnabled
      */
     public function __construct(
         EndpointRegistryInterface $endpointRegistry,
