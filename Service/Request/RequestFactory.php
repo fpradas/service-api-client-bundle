@@ -112,7 +112,7 @@ class RequestFactory implements RequestFactoryInterface
 
     /**
      * @param RequestInterface $request
-     * @param string $requestFormat
+     * @param string           $requestFormat
      *
      * @return RequestInterface
      */
@@ -176,7 +176,7 @@ class RequestFactory implements RequestFactoryInterface
 
     /**
      * @param ServiceRequestInterface $serviceRequest
-     * @param EndpointInterface $endpoint
+     * @param EndpointInterface       $endpoint
      * @return mixed
      */
     private function getRequestBody(ServiceRequestInterface $serviceRequest, EndpointInterface $endpoint)
