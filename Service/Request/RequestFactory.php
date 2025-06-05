@@ -7,6 +7,7 @@
 * For the full copyright and license information, please view the LICENSE
 * file that was distributed with this source code.
 */
+
 namespace Auto1\ServiceAPIClientBundle\Service\Request;
 
 use Auto1\ServiceAPIComponentsBundle\Exception\Request\InvalidArgumentException;
@@ -65,12 +66,12 @@ class RequestFactory implements RequestFactoryInterface
     /**
      * RequestFactory constructor.
      *
-     * @param EndpointRegistryInterface       $endpointRegistry
-     * @param SerializerInterface             $serializer
+     * @param EndpointRegistryInterface $endpointRegistry
+     * @param SerializerInterface $serializer
      * @param RequestVisitorRegistryInterface $requestVisitorRegistry
-     * @param UriFactory                      $uriFactory
-     * @param MessageFactory                  $messageFactory
-     * @param bool                            $strictModeEnabled
+     * @param UriFactory $uriFactory
+     * @param MessageFactory $messageFactory
+     * @param bool $strictModeEnabled
      */
     public function __construct(
         EndpointRegistryInterface $endpointRegistry,
@@ -111,7 +112,7 @@ class RequestFactory implements RequestFactoryInterface
 
     /**
      * @param RequestInterface $request
-     * @param string           $requestFormat
+     * @param string $requestFormat
      *
      * @return RequestInterface
      */
@@ -139,8 +140,8 @@ class RequestFactory implements RequestFactoryInterface
         //check for placeholders
         preg_match_all('/{([\w-]*)}/', $path, $matches);
         foreach ($matches[0] as $index => $placeholder) {
-            $key = $matches[1][$index];
-            $getterMethod = 'get'.str_replace('-', '', ucwords($key, '-'));
+            $property = $matches[1][$index];
+            $getterMethod = $this->getGetterMethodName($property);
             if (!method_exists($serviceRequest, $getterMethod)) {
                 $message = 'Invalid request path argumentAlias';
                 $errorCode = Response::HTTP_BAD_REQUEST;
@@ -148,7 +149,7 @@ class RequestFactory implements RequestFactoryInterface
                 throw new InvalidArgumentException($message, $errorCode);
             }
             $value = $serviceRequest->$getterMethod();
-            $value = array_key_exists($key, $queryParams) ? urlencode((string)$value) : $value;
+            $value = array_key_exists($property, $queryParams) ? urlencode((string)$value) : $value;
             $path = str_replace($placeholder, $value, $path);
         }
 
@@ -160,6 +161,17 @@ class RequestFactory implements RequestFactoryInterface
         }
 
         return $this->uriFactory->createUri($baseUrl.$path);
+    }
+
+    private function getGetterMethodName(string $property): string
+    {
+        return 'get'.preg_replace_callback(
+                '/(?:^|[_-])([a-z])/i',
+                static function (array $matches) {
+                    return strtoupper($matches[1]);
+                },
+                $property
+            );
     }
 
     /**

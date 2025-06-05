@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace Auto1\ServiceAPIClientBundle\Tests\Service;
 
+use Auto1\ServiceAPIClientBundle\Tests\Service\Request\RequestWithTwoParamsStub;
 use Auto1\ServiceAPIComponentsBundle\Exception\Request\InvalidArgumentException;
 use Auto1\ServiceAPIComponentsBundle\Service\Endpoint\EndpointInterface;
 use Auto1\ServiceAPIComponentsBundle\Service\Endpoint\EndpointRegistryInterface;
@@ -312,30 +313,35 @@ class RequestFactoryTest extends TestCase
     /**
      * @return void
      */
-    public function testBuildFlowWithQueryDashParams()
+    public function testBuildFlowWithUnderscoreAndDashParams(): void
     {
         $baseUrl = 'baseUrl';
-        $routeString = '/routeString?first-param={first-param}&second-param=ignored value';
-        $originParamValue = 'value with whitespaces';
+        $routeString = '/routeString/{first-param}?secondParam={second_param}&thirdParam=ignored value';
+        $firstParamValue = 12345;
+        $secondParamValue = 'value with whitespaces';
         $requestMethod = 'GET';
         $requestBody = '';
 
-        $expectedUri = 'baseUrl/routeString?first-param=value+with+whitespaces&second-param=ignored value';
+        $expectedUri = 'baseUrl/routeString/12345?secondParam=value+with+whitespaces&thirdParam=ignored value';
 
         $endpointProphecy = $this->prophesize(EndpointInterface::class);
-        $endpointProphecy->getBaseUrl()
+        $endpointProphecy
+            ->getBaseUrl()
             ->willReturn($baseUrl)
             ->shouldBeCalled()
         ;
-        $endpointProphecy->getPath()
+        $endpointProphecy
+            ->getPath()
             ->willReturn($routeString)
             ->shouldBeCalled()
         ;
-        $endpointProphecy->getMethod()
+        $endpointProphecy
+            ->getMethod()
             ->willReturn($requestMethod)
             ->shouldBeCalled()
         ;
-        $endpointProphecy->getRequestFormat()
+        $endpointProphecy
+            ->getRequestFormat()
             ->willReturn(EndpointInterface::FORMAT_JSON)
             ->shouldBeCalled()
         ;
@@ -344,14 +350,7 @@ class RequestFactoryTest extends TestCase
         $uri = $this->prophesize(UriInterface::class)->reveal();
         $request = $this->prophesize(RequestInterface::class)->reveal();
 
-        // Mock non existing method of ServiceRequest `getParam`
-        $serviceRequest = $this->getMockBuilder(ServiceRequestInterface::class)
-            ->setMethods(['getFirstParam'])
-            ->getMock();
-
-        $serviceRequest
-            ->method('getFirstParam')
-            ->willReturn($originParamValue);
+        $serviceRequest = new RequestWithTwoParamsStub($firstParamValue, $secondParamValue);
 
         $this->endpointRegistryProphecy
             ->getEndpoint($serviceRequest)
@@ -402,9 +401,6 @@ class RequestFactoryTest extends TestCase
             false
         );
 
-        self::assertInstanceOf(
-            RequestInterface::class,
-            $requestBuilder->create($serviceRequest)
-        );
+        $this->assertInstanceOf(RequestInterface::class, $requestBuilder->create($serviceRequest));
     }
 }
