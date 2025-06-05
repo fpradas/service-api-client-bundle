@@ -316,13 +316,14 @@ class RequestFactoryTest extends TestCase
     public function testBuildFlowWithUnderscoreAndDashParams(): void
     {
         $baseUrl = 'baseUrl';
-        $routeString = '/routeString/{first-param}?secondParam={second_param}&thirdParam=ignored value';
+        $routeString = '/{first-param}?second_param={second_param}&third-param={thirdParam}';
         $firstParamValue = 12345;
         $secondParamValue = 'value with whitespaces';
+        $thirdParamValue = 'https://www.auto1.com/';
         $requestMethod = 'GET';
         $requestBody = '';
 
-        $expectedUri = 'baseUrl/routeString/12345?secondParam=value+with+whitespaces&thirdParam=ignored value';
+        $expectedUri = 'baseUrl/12345?second_param=value+with+whitespaces&third-param=https%3A%2F%2Fwww.auto1.com%2F';
 
         $endpointProphecy = $this->prophesize(EndpointInterface::class);
         $endpointProphecy
@@ -350,7 +351,26 @@ class RequestFactoryTest extends TestCase
         $uri = $this->prophesize(UriInterface::class)->reveal();
         $request = $this->prophesize(RequestInterface::class)->reveal();
 
-        $serviceRequest = new RequestWithTwoParamsStub($firstParamValue, $secondParamValue);
+        // Mock non existing method of ServiceRequest `getParam`
+        $serviceRequest = $this->getMockBuilder(ServiceRequestInterface::class)
+            ->addMethods(['getFirstParam', 'getSecondParam', 'getThirdParam', 'getty'])
+            ->getMock();
+
+        $serviceRequest
+            ->expects($this->once())
+            ->method('getFirstParam')
+            ->willReturn($firstParamValue);
+
+        $serviceRequest
+            ->expects($this->once())
+            ->method('getSecondParam')
+            ->willReturn($secondParamValue);
+
+        $serviceRequest
+            ->expects($this->once())
+            ->method('getThirdParam')
+            ->willReturn($thirdParamValue);
+
 
         $this->endpointRegistryProphecy
             ->getEndpoint($serviceRequest)

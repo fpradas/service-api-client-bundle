@@ -165,13 +165,7 @@ class RequestFactory implements RequestFactoryInterface
 
     private function getGetterMethodName(string $property): string
     {
-        return 'get'.preg_replace_callback(
-                '/(?:^|[_-])([a-z])/i',
-                static function (array $matches) {
-                    return strtoupper($matches[1]);
-                },
-                $property
-            );
+        return 'get'.str_replace(['-', '_'], '', ucwords($property, '-_'));
     }
 
     /**
