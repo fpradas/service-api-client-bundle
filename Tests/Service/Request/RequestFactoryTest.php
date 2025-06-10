@@ -353,7 +353,7 @@ class RequestFactoryTest extends TestCase
 
         // Mock non existing method of ServiceRequest `getParam`
         $serviceRequest = $this->getMockBuilder(ServiceRequestInterface::class)
-            ->addMethods(['getFirstParam', 'getSecondParam', 'getThirdParam', 'getty'])
+            ->addMethods(['getFirstParam', 'getSecondParam', 'getThirdParam'])
             ->getMock();
 
         $serviceRequest
