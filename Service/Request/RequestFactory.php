@@ -20,6 +20,7 @@ use Http\Message\UriFactory;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UriInterface;
+use Psr\Log\LoggerAwareInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Serializer\SerializerInterface;
 use Auto1\ServiceAPIRequest\ServiceRequestInterface;
@@ -27,7 +28,7 @@ use Auto1\ServiceAPIRequest\ServiceRequestInterface;
 /**
  * Class RequestFactory.
  */
-class RequestFactory implements RequestFactoryInterface
+class RequestFactory implements RequestFactoryInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
 

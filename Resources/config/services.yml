@@ -12,7 +12,7 @@ services:
 
     auto1.api.response.transformer:
         class: Auto1\ServiceAPIClientBundle\Service\Response\ResponseTransformer
-        autowire: true
+        autoconfigure: true
         arguments:
             - '@auto1.api.endpoint.registry'
             - '@auto1.api.response.serializer'
