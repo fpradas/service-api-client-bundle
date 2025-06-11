@@ -28,7 +28,7 @@ class Auto1ServiceAPIClientBundle extends Bundle
             ->addCompilerPass(new ClientLoggerCompilerPass())
             ->addCompilerPass(new RequestVisitorCompilerPass());
 
-         $container->registerForAutoconfiguration(ResponseTransformerStrategyInterface::class)
+        $container->registerForAutoconfiguration(ResponseTransformerStrategyInterface::class)
             ->addTag('response.transformer.strategies');
     }
 }
