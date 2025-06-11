@@ -18,6 +18,7 @@ use Auto1\ServiceAPIComponentsBundle\Service\Endpoint\EndpointRegistryInterface;
 use Auto1\ServiceAPIComponentsBundle\Service\Logger\LoggerAwareTrait;
 use Auto1\ServiceAPIRequest\ServiceRequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Log\LoggerAwareInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
@@ -26,7 +27,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 /**
  * Class ResponseTransformer
  */
-class ResponseTransformer implements ResponseTransformerInterface
+class ResponseTransformer implements ResponseTransformerInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
