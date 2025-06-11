@@ -119,6 +119,7 @@ services:
             - '@auto1.api.http_async_client'
 
     auto1.api.symfony.deserializer:
+        autoconfigure: true
         class: Auto1\ServiceAPIClientBundle\Service\SymfonyDeserializer
         arguments:
             - '@auto1.api.response.serializer'
