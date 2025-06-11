@@ -18,9 +18,6 @@ use Throwable;
  */
 class ResponseException extends AbstractException
 {
-    /** @var ResponseException */
-    private $response;
-
     /**
      * ResponseException constructor.
      *
@@ -37,15 +34,6 @@ class ResponseException extends AbstractException
                 : '';
         }
 
-        $this->response = $errorDto;
         parent::__construct($message, $code, $previous);
-    }
-
-    /**
-     * @return ErrorResponse|null
-     */
-    public function getResponse()
-    {
-        return $this->response;
     }
 }

@@ -4,7 +4,6 @@ services:
         autowire: true
         autoconfigure: true
         resource: '../../Service/ResponseTransformerStrategy/*'
-        tags: ['response.transformer.strategies']
 
     auto1.api.previous_request:
         class: Symfony\Component\HttpFoundation\Request
@@ -12,10 +11,11 @@ services:
 
     auto1.api.response.transformer:
         class: Auto1\ServiceAPIClientBundle\Service\Response\ResponseTransformer
-        autoconfigure: true
         arguments:
             - '@auto1.api.endpoint.registry'
             - '@auto1.api.response.serializer'
+        calls:
+            - [setLogger, ['@logger']]
 
     auto1.api.response.strategy.transformer:
         class: Auto1\ServiceAPIClientBundle\Service\Response\ResponseStrategyTransformer
@@ -75,7 +75,6 @@ services:
 
     auto1.api.request.factory:
         class: Auto1\ServiceAPIClientBundle\Service\Request\RequestFactory
-        autoconfigure: true
         arguments:
             - '@auto1.api.endpoint.registry'
             - '@auto1.api.request.serializer'
@@ -83,6 +82,8 @@ services:
             - '@auto1.api.uri_factory'
             - '@auto1.api.message_factory'
             - '%auto1_service_api_client.strict_mode%'
+        calls:
+            - [setLogger, ['@logger']]
 
     auto1.api.client_logger.psr:
         class: Auto1\ServiceAPIClientBundle\Service\ClientLogger\PsrClientLogger
@@ -119,6 +120,7 @@ services:
             - '@auto1.api.http_async_client'
 
     auto1.api.symfony.deserializer:
+        autowire: true
         autoconfigure: true
         class: Auto1\ServiceAPIClientBundle\Service\SymfonyDeserializer
         arguments:
