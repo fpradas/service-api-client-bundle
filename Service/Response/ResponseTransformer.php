@@ -27,7 +27,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 /**
  * Class ResponseTransformer
  */
-class ResponseTransformer implements ResponseTransformerInterface, LoggerAwareInterface
+class ResponseTransformer implements ResponseTransformerInterface
 {
     use LoggerAwareTrait;
 
