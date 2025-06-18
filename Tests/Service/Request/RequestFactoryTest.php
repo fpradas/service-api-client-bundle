@@ -11,7 +11,6 @@ declare(strict_types=1);
 
 namespace Auto1\ServiceAPIClientBundle\Tests\Service;
 
-use Auto1\ServiceAPIClientBundle\Tests\Service\Request\RequestWithTwoParamsStub;
 use Auto1\ServiceAPIComponentsBundle\Exception\Request\InvalidArgumentException;
 use Auto1\ServiceAPIComponentsBundle\Service\Endpoint\EndpointInterface;
 use Auto1\ServiceAPIComponentsBundle\Service\Endpoint\EndpointRegistryInterface;
