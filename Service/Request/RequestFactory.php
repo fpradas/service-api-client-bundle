@@ -165,9 +165,18 @@ class RequestFactory implements RequestFactoryInterface, LoggerAwareInterface
             if ($value instanceof \DateTimeInterface) {
                 $value = $value->format($endpoint->getDateTimeFormat() ?: \DATE_ATOM);
             }
-            $value = array_key_exists($property, $queryParams) ? urlencode((string)$value) : $value;
+            if (array_key_exists($property, $queryParams)) {
+                if (null === $value) {
+                    $path = str_replace($queryParams[$property].'='.$placeholder, '', $path);
+
+                    continue;
+                }
+                $value = urlencode((string)$value);
+            }
             $path = str_replace($placeholder, $value, $path);
         }
+
+        $path = $this->normalizeQueryString($path);
 
         if (!$this->validateEndpointPath($path)) {
             $message = 'Invalid request path';
@@ -213,6 +222,21 @@ class RequestFactory implements RequestFactoryInterface, LoggerAwareInterface
         $pathContainsEmptyFolders = preg_match('/\/\//', $path);
 
         return !$pathContainsUnmappedArguments && !$pathContainsEmptyFolders;
+    }
+
+    /**
+     * Removes query string separator artifacts left behind when a parameter is dropped
+     *
+     * @param string $path
+     *
+     * @return string
+     */
+    private function normalizeQueryString(string $path): string
+    {
+        $path = (string)preg_replace('/&{2,}/', '&', $path);
+        $path = str_replace('?&', '?', $path);
+
+        return rtrim($path, '?&');
     }
 
     /**
