@@ -23,6 +23,7 @@ use Psr\Http\Message\UriInterface;
 use Psr\Http\Message\UriFactoryInterface as PsrUriFactoryInterface;
 use Psr\Log\LoggerAwareInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Auto1\ServiceAPIRequest\ServiceRequestInterface;
 
@@ -34,6 +35,11 @@ class RequestFactory implements RequestFactoryInterface, LoggerAwareInterface
     use LoggerAwareTrait;
 
     private const METHODS_WITHOUT_BODY = ['GET', 'HEAD', 'OPTIONS', 'TRACE'];
+
+    private const SERIALIZER_CONTEXT_ATTRIBUTES = [
+        'Symfony\\Component\\Serializer\\Attribute\\Context',
+        'Symfony\\Component\\Serializer\\Annotation\\Context',
+    ];
 
     /**
      * @var EndpointRegistryInterface
@@ -163,7 +169,7 @@ class RequestFactory implements RequestFactoryInterface, LoggerAwareInterface
             }
             $value = $serviceRequest->$getterMethod();
             if ($value instanceof \DateTimeInterface) {
-                $value = $value->format($endpoint->getDateTimeFormat() ?: \DATE_ATOM);
+                $value = $value->format($this->getDateTimeFormat($serviceRequest, $getterMethod, $endpoint));
             }
             if (array_key_exists($property, $queryParams)) {
                 if (null === $value) {
@@ -186,6 +192,43 @@ class RequestFactory implements RequestFactoryInterface, LoggerAwareInterface
         }
 
         return $this->uriFactory->createUri($baseUrl.$path);
+    }
+
+    private function getDateTimeFormat(
+        ServiceRequestInterface $serviceRequest,
+        string $getterMethod,
+        EndpointInterface $endpoint
+    ): string {
+        return $this->getContextDateTimeFormat($serviceRequest, lcfirst(substr($getterMethod, 3)))
+            ?? ($endpoint->getDateTimeFormat() ?: \DATE_ATOM);
+    }
+
+    private function getContextDateTimeFormat(ServiceRequestInterface $serviceRequest, string $property): ?string
+    {
+        if (\PHP_VERSION_ID < 80000 || !property_exists($serviceRequest, $property)) {
+            return null;
+        }
+
+        $reflectionProperty = new \ReflectionProperty($serviceRequest, $property);
+
+        foreach (self::SERIALIZER_CONTEXT_ATTRIBUTES as $attributeClass) {
+            if (!class_exists($attributeClass)) {
+                continue;
+            }
+
+            foreach ($reflectionProperty->getAttributes($attributeClass) as $attribute) {
+                $context = $attribute->newInstance();
+                $format = $context->getNormalizationContext()[DateTimeNormalizer::FORMAT_KEY]
+                    ?? $context->getContext()[DateTimeNormalizer::FORMAT_KEY]
+                    ?? null;
+
+                if (is_string($format)) {
+                    return $format;
+                }
+            }
+        }
+
+        return null;
     }
 
     private function getGetterMethodName(string $property): string

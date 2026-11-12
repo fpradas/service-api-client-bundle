@@ -28,6 +28,7 @@ use Auto1\ServiceAPIClientBundle\Service\Request\RequestVisitorRegistry;
 use Auto1\ServiceAPIClientBundle\Service\Request\RequestVisitorRegistryInterface;
 use Auto1\ServiceAPIClientBundle\Service\Request\Visitor\RequestVisitorInterface;
 use Auto1\ServiceAPIClientBundle\Service\Request\RequestFactory;
+use Auto1\ServiceAPIClientBundle\Tests\Service\Request\Fixtures\RequestWithDateContext;
 use Auto1\ServiceAPIRequest\ServiceRequestInterface;
 
 /**
@@ -629,6 +630,87 @@ class RequestFactoryTest extends TestCase
             'falls back to ATOM when the endpoint declares none' => [
                 null,
                 'baseUrl/rates?markup_date=2026-03-12T15%3A09%3A26%2B01%3A00',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider serializerContextDateProvider
+     *
+     * @return void
+     */
+    public function testSerializerContextDateFormatWinsOverEndpointFormat(
+        ?string $dateTimeFormat,
+        string $expectedUri
+    ): void {
+        if (\PHP_VERSION_ID < 80000) {
+            $this->markTestSkipped('Attributes need PHP 8');
+        }
+
+        $baseUrl = 'baseUrl';
+        $routeString = '/rates?markup_date={markupDate}&valid_at={validAt}';
+        $requestMethod = 'GET';
+        $requestBody = '';
+
+        $endpointProphecy = $this->prophesize(EndpointInterface::class);
+        $endpointProphecy->getBaseUrl()->willReturn($baseUrl)->shouldBeCalled();
+        $endpointProphecy->getPath()->willReturn($routeString)->shouldBeCalled();
+        $endpointProphecy->getMethod()->willReturn($requestMethod)->shouldBeCalled();
+        $endpointProphecy->getRequestFormat()->willReturn(EndpointInterface::FORMAT_JSON)->shouldBeCalled();
+        $endpointProphecy->getDateTimeFormat()->willReturn($dateTimeFormat);
+        $endpoint = $endpointProphecy->reveal();
+
+        $uri = $this->prophesize(UriInterface::class)->reveal();
+        $requestProphecy = $this->prophesize(RequestInterface::class);
+        $request = $requestProphecy->reveal();
+        $stream = $this->prophesize(StreamInterface::class)->reveal();
+
+        $serviceRequest = (new RequestWithDateContext())
+            ->setMarkupDate(new \DateTimeImmutable('2026-03-12T15:09:26+01:00'))
+            ->setValidAt(new \DateTimeImmutable('2026-03-12T15:09:26+01:00'));
+
+        $this->endpointRegistryProphecy->getEndpoint($serviceRequest)->willReturn($endpoint)->shouldBeCalled();
+        $this->serializerProphecy
+            ->serialize($serviceRequest, EndpointInterface::FORMAT_JSON)
+            ->willReturn($requestBody)
+            ->shouldBeCalled()
+        ;
+        $this->uriFactoryProphecy->createUri($expectedUri)->willReturn($uri)->shouldBeCalled();
+        $this->requestFactoryProphecy->createRequest($requestMethod, $uri)->willReturn($request)->shouldBeCalled();
+        $this->streamFactoryProphecy->createStream($requestBody)->willReturn($stream)->shouldBeCalled();
+        $requestProphecy->withBody($stream)->willReturn($request)->shouldBeCalled();
+        $this->requestVisitorRegistryProphecy
+            ->getRegisteredRequestVisitors(EndpointInterface::FORMAT_JSON)
+            ->willReturn([])
+            ->shouldBeCalled()
+        ;
+
+        $requestBuilder = new RequestFactory(
+            $this->endpointRegistryProphecy->reveal(),
+            $this->serializerProphecy->reveal(),
+            $this->requestVisitorRegistryProphecy->reveal(),
+            $this->uriFactoryProphecy->reveal(),
+            $this->requestFactoryProphecy->reveal(),
+            $this->streamFactoryProphecy->reveal(),
+            false
+        );
+
+        $this->assertInstanceOf(RequestInterface::class, $requestBuilder->create($serviceRequest));
+    }
+
+    /**
+     * @return array<string, array{0: string|null, 1: string}>
+     */
+    public function serializerContextDateProvider(): array
+    {
+        return [
+            'no endpoint format' => [
+                null,
+                'baseUrl/rates?markup_date=2026-03-12&valid_at=2026-03-12T15%3A09%3A26%2B01%3A00',
+            ],
+            'endpoint format set' => [
+                'Y-m-d\TH:i:sO',
+                'baseUrl/rates?markup_date=2026-03-12&valid_at=2026-03-12T15%3A09%3A26%2B0100',
             ],
         ];
     }
